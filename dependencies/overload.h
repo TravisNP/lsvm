@@ -18,7 +18,7 @@ std::vector<double>& operator+=(std::vector<double>& lhs, const std::vector<doub
  * @param rhs the vector that is being subtracted
  * @return the pairwise subtraction
  */
-std::vector<double>& operator-=(std::vector<double>& lhs, const std::vector<double>& rhs);
+std::vector<double>& operator-(std::vector<double>& lhs, const std::vector<double>& rhs);
 
 /**
  * Multiplies a constant through a vector

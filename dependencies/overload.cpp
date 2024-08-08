@@ -9,7 +9,7 @@ std::vector<double>& operator+=(std::vector<double>& lhs, const std::vector<doub
     return lhs;
 }
 
-std::vector<double>& operator-=(std::vector<double>& lhs, const std::vector<double>& rhs) {
+std::vector<double>& operator-(std::vector<double>& lhs, const std::vector<double>& rhs) {
     if (lhs.size() != rhs.size())
         throw CustomException("Cannot add vectors because their lengths are not the same");
 

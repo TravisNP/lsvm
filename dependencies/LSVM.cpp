@@ -59,12 +59,8 @@ std::pair<int, std::vector<double>> LSVM::getCostGradient() {
     // Gradient
     std::vector<double> dNormalVector(DIMENSION, 0);
 
-    for (int i = 0; i < NUM_DATA_POINTS; ++i) {
-        if (distances[i] != 0)
-            dNormalVector -= INDIV_INFLUENCE * LABELS[i] * DATA[i];
-
-        dNormalVector += normalVector;
-    }
+    for (int i = 0; i < NUM_DATA_POINTS; ++i)
+        dNormalVector += normalVector - (distances[i] != 0) * (INDIV_INFLUENCE * LABELS[i] * DATA[i]);
 
     return std::make_pair(currentCost, dNormalVector);
 }
