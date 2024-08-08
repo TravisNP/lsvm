@@ -3,24 +3,32 @@ CXX = g++
 
 # C++ version 23, -g is for debugging, -Wall and -Wextra are for compile warning messages
 CXXFLAGS = -std=c++23 -g -Wall -Wextra
+CXXFLAGS_EXTRA = -Wno-sign-compare -Wno-maybe-uninitialized
+# SRLFLAGS = -L/usr/lib -lboost_serialization -lboost_system
 
-# Executable name
-TARGET = testLSVM
+DEPENDENCIES_DIR = dependencies
+BUILD_DIR = build
 
-# Source files
-SRCS = LSVM.cpp testLSVM.cpp
+# Builds all files in the current directory
+SRCS = $(wildcard $(DEPENDENCIES_DIR)/*.cpp)
 
-# Create object files
-OBJS = $(SRCS:.cpp=.o)
+# Creates a copy of each cpp file and places them in the build directory with the .o extensions
+OBJS = $(SRCS:$(DEPENDENCIES_DIR)/%.cpp=$(BUILD_DIR)/%.o)
 
-# Link object file and compile executable
-$(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS)
+# Compiles all the object files together into one executable
+testLSVM: $(OBJS) $(BUILD_DIR)/testLSVM.o
+	$(CXX) $(CXXFLAGS) -o testLSVM $(OBJS) $(BUILD_DIR)/testLSVM.o $(SRLFLAGS)
 
-# Compile source files into object files
-%.o: %.cpp
+$(BUILD_DIR)/testLSVM.o: testLSVM.cpp
+	@mkdir -p $(BUILD_DIR)
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+# Compiles the .o files in the build directory
+$(BUILD_DIR)/%.o: $(DEPENDENCIES_DIR)/%.cpp
+	@mkdir -p $(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Remove object files and executable
+# Removes the build directory, all object files, and the executable
 clean:
-	rm -f $(TARGET) $(OBJS)
+	rm -f testLSVM $(BUILD_DIR)/*.o
+	rm -rf $(BUILD_DIR)
