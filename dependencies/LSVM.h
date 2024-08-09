@@ -4,8 +4,8 @@
 #include <vector>
 #include <iostream>
 #include <numeric>
+#include <math.h>
 
-#include "custom_exceptions.h"
 #include "overload.h"
 
 class LSVM {
@@ -41,6 +41,22 @@ private:
 
 public:
     LSVM(const std::vector<std::vector<double>> _data, const std::vector<int> _labels, const int _numEpocs, const double _learningRate, const double _indivInfluence);
+
+    /** Fits the model to the data with gradient descent
+     * @param printEveryX prints the cost every X iterations
+     */
+    void train(const bool print = false, const int printEveryX = 1000);
+
+    /** Predicts the labels of the inputted dataset
+     * @param dataSet the dataset to predict the labels of
+     * @return the predicted labels
+     */
+    std::vector<int> predictLabels(const std::vector<std::vector<double>> dataSet);
+
+    /** Accessor for the normalVector variable
+     * @return the normal vector
+     */
+    std::vector<double> getNormalVector();
 };
 
 #endif

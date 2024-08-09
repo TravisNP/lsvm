@@ -59,8 +59,42 @@ std::pair<int, std::vector<double>> LSVM::getCostGradient() {
     // Gradient
     std::vector<double> dNormalVector(DIMENSION, 0);
 
-    for (int i = 0; i < NUM_DATA_POINTS; ++i)
-        dNormalVector += normalVector - (distances[i] != 0) * (INDIV_INFLUENCE * LABELS[i] * DATA[i]);
+    for (int i = 0; i < NUM_DATA_POINTS; ++i) {
+        dNormalVector += normalVector - ((distances[i] != 0) * INDIV_INFLUENCE * LABELS[i]) * DATA[i];
+    }
+
+    dNormalVector /= NUM_DATA_POINTS;
 
     return std::make_pair(currentCost, dNormalVector);
+}
+
+void LSVM::train(const bool print, const int printEveryX) {
+    std::pair<int, std::vector<double>> costGradient;
+    for(int epoc = 0; epoc < NUM_EPOCS; ++epoc) {
+        costGradient = getCostGradient();
+        normalVector -= LEARNING_RATE * costGradient.second;
+        if (print && epoc % printEveryX == 0)
+            std::cout << "i : " << costGradient.first << std::endl;
+    }
+}
+
+std::vector<int> LSVM::predictLabels(std::vector<std::vector<double>> dataSet) {
+    // Validate the dataset
+    if (dataSet.size() == 0)
+        throw CustomException("Cannot predict: no data");
+    for (int i = 0; i < dataSet.size(); ++i)
+        if (dataSet[i].size() != DIMENSION)
+            throw CustomException("Cannot predict: dimension of each point" + std::to_string(i) + "does not match dimension of training data");
+
+    std::vector<double> crossProduct = dataSet * normalVector;
+
+    std::vector<int> signs(dataSet.size(), 0);
+    for (int i = 0; i < dataSet.size(); ++i)
+        signs[i] = copysign(1, crossProduct[i]);
+
+    return signs;
+}
+
+std::vector<double> LSVM::getNormalVector() {
+    return normalVector;
 }
