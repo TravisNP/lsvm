@@ -4,79 +4,104 @@
 #include <chrono>
 
 #include "dependencies/LSVM.h"
+#include "dependencies/gnuplot.h"
 
+// Number of epocs
 #define NUM_EPOCS 1'000
+
+// Learning rate
 #define LEARNING_RATE .001
+
+// Hyperparameter
 #define INDIV_INFLUENCE 30
 
-#define NUM_SAMPLES 10
+// How many training samples to generate
+#define NUM_TRAINING_SAMPLES 100
 
-void initData(std::vector<std::vector<double>>& data, std::vector<int>& labels) {
+// How many epocs to wait to print cost of current decision boundary during training
+#define PRINT_EVERY_X 100
+
+// How many samples to test the model on
+#define NUM_TEST_SAMPLES 100
+
+void initData(std::vector<std::vector<double>>& data, std::vector<int>& labels, const int numberSamples) {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::normal_distribution<double> x1(3, 1);
-    std::normal_distribution<double> y1(1, 1);
-    std::normal_distribution<double> xN1(9, 1);
-    std::normal_distribution<double> yN1(7, 1);
+    std::normal_distribution<double> x1(7, 1);
+    std::normal_distribution<double> y1(7, 1);
+    std::normal_distribution<double> xN1(1, 1);
+    std::normal_distribution<double> yN1(1, 1);
 
     std::vector<std::pair<std::vector<double>, int>> dataLabel;
 
     std::vector<double> generatedPoint;
-    for (int i = 0; i < NUM_SAMPLES/2; ++i) {
-        generatedPoint = {x1(gen), y1(gen)};
+    for (int i = 0; i < numberSamples/2; ++i) {
+        generatedPoint = {1, x1(gen), y1(gen)};
         dataLabel.emplace_back(generatedPoint, 1);
     }
 
-    for (int i = 0; i < NUM_SAMPLES/2; ++i) {
-        generatedPoint = {xN1(gen), yN1(gen)};
+    for (int i = 0; i < numberSamples/2; ++i) {
+        generatedPoint = {1, xN1(gen), yN1(gen)};
         dataLabel.emplace_back(generatedPoint, -1);
     }
 
     shuffle(dataLabel.begin(), dataLabel.end(), std::default_random_engine(std::chrono::system_clock::now().time_since_epoch().count()));
-    for (int i = 0; i < NUM_SAMPLES; ++i) {
+    for (int i = 0; i < numberSamples; ++i) {
         data.push_back(dataLabel[i].first);
         labels.push_back(dataLabel[i].second);
     }
 }
 
 int main() {
-    std::vector<std::vector<double>> data;
-    std::vector<int> labels;
-    initData(data, labels);
+    std::vector<std::vector<double>> trainingData;
+    std::vector<int> trainingLabels;
+    initData(trainingData, trainingLabels, NUM_TRAINING_SAMPLES);
 
-    for (int i = 0; i < NUM_SAMPLES; ++i)
-        std::cout << "(" << data[i][0] << "," << data[i][1] << "): " << labels[i] << std::endl;
-
+    // The Linear Support Vector Machine Object
     LSVM* model;
     try {
-        model = new LSVM(data, labels, NUM_EPOCS, LEARNING_RATE, INDIV_INFLUENCE);
+        model = new LSVM(trainingData, trainingLabels, NUM_EPOCS, LEARNING_RATE, INDIV_INFLUENCE);
     } catch (CustomException& e) {
         std::cout << "Error in creation of model - " << e.getMessage() << std::endl;
         delete model;
         return -1;
     }
 
+    // Train the data
     try {
-        model->train(true, 100);
+        model->train(true, PRINT_EVERY_X);
     } catch (CustomException& e) {
         std::cout << "Error in training of model - " << e.getMessage() << std::endl;
     }
 
-    std::cout <<    "Normal Vector: (" << model->getNormalVector()[0] << "," << model->getNormalVector()[1] << ")" << std::endl;
+    // Print out the vector for the decision boundary
+    std::cout << "Decision Boundary: (" << model->getNormalVector()[0] << "," << model->getNormalVector()[1] << ")" << std::endl;
 
+
+    std::vector<std::vector<double>> testData;
+    std::vector<int> testLabels;
+    initData(testData, testLabels, NUM_TEST_SAMPLES);
+
+    // The predicted labels by the model
     std::vector<int> predictedLabels;
+
+    // Predict the label(s)
     try {
-        predictedLabels = model->predictLabels(data);
+        predictedLabels = model->predictLabels(testData);
     } catch (CustomException& e) {
         std::cout << "Error in predicting labels - " << e.getMessage() << std::endl;
     }
 
+    // Calculate the arruracy of the model
     double accuracy = 0;
-    for (int i = 0; i < data.size(); ++i) {
-        accuracy += (labels[i] == predictedLabels[i]);
+    for (int i = 0; i < NUM_TEST_SAMPLES; ++i) {
+        accuracy += (testLabels[i] == predictedLabels[i]);
     }
-    accuracy = accuracy * 100 / data.size();
+    accuracy = accuracy * 100 / NUM_TEST_SAMPLES;
     std::cout << "Accuracy: " << accuracy << "%" << std::endl;
+
+    // Plot the training data and the decision boundary
+    plotData(trainingData, trainingLabels);
 
     delete model;
     return 0;

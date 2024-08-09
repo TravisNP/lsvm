@@ -30,5 +30,5 @@ $(BUILD_DIR)/%.o: $(DEPENDENCIES_DIR)/%.cpp
 
 # Removes the build directory, all object files, and the executable
 clean:
-	rm -f testLSVM $(BUILD_DIR)/*.o
+	rm -f testLSVM data.dat $(BUILD_DIR)/*.o
 	rm -rf $(BUILD_DIR)

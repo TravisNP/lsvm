@@ -52,11 +52,28 @@ std::vector<double> operator-(const std::vector<double>& lhs, const std::vector<
 std::vector<double> operator*(const std::vector<std::vector<double>>& lhs, const std::vector<double>& rhs);
 
 /**
+ * The inner product of two vectors
+ * @param lhs the left matrix
+ * @param rhs the right matrix
+ * @return the cross product
+ * @throws CustomException if one of the matrices has 0 dimension or if the dimensions needed do not match (m x n * n x 1)
+ */
+double operator*(const std::vector<double>& lhs, const std::vector<double>& rhs);
+
+/**
  * Multiplies a constant through a vector
  * @param mult the constant
  * @param vec the vector
  * @return the vector with each element multiplied by the constant
  */
 std::vector<double> operator*(const int mult, const std::vector<double>& vec);
+
+/**
+ * Multiplies a constant through a vector
+ * @param mult the constant
+ * @param vec the vector
+ * @return the vector with each element multiplied by the constant
+ */
+std::vector<double> operator*(const double mult, const std::vector<double>& vec);
 
 #endif

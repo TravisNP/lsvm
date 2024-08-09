@@ -10,23 +10,32 @@
 
 class LSVM {
 private:
+    // The data to train the model on
     std::vector<std::vector<double>> DATA;
 
+    // The labels to train the model on
     std::vector<int> LABELS;
 
+    // Number of epocs used during training
     int NUM_EPOCS;
 
+    // Hyperparameter
     double LEARNING_RATE;
 
+    // Hyperparameter
     double INDIV_INFLUENCE;
 
     std::vector<double> normalVector;
 
+    // Dimension of the data
     int DIMENSION;
 
+    // Number of data points to generate
     int NUM_DATA_POINTS;
 
-    // Throws an error if the dataset is not valid
+    /** Validates the data
+     * @throws an error if the dataset is not valid
+     */
     void validateData();
 
     /** Calculates the distance of each point from the current decision boundary
@@ -37,7 +46,7 @@ private:
     /** Calculates the cost gradients to do gradient descent
      * @return the cost (no actual use besides printing to terminal) and the gradient
      */
-    std::pair<int, std::vector<double>> getCostGradient();
+    std::pair<double, std::vector<double>> getCostGradient();
 
 public:
     LSVM(const std::vector<std::vector<double>> _data, const std::vector<int> _labels, const int _numEpocs, const double _learningRate, const double _indivInfluence);

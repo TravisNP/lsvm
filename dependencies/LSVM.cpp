@@ -13,7 +13,7 @@ LSVM::LSVM(const std::vector<std::vector<double>> _data, const std::vector<int> 
     DIMENSION = DATA[0].size();
 
     // Init normal vector with length of the dimension of data
-    normalVector = std::vector<double>(DIMENSION, 0);
+    normalVector = std::vector<double>(DIMENSION, 1);
 }
 
 void LSVM::validateData() {
@@ -38,7 +38,7 @@ std::vector<double> LSVM::getDistancesFromCurrentDB() {
     double distance;
     for (int i = 0; i < NUM_DATA_POINTS; ++i) {
         // Get the distance from margin
-        distance = LABELS[i] * std::inner_product(DATA[i].begin(), DATA[i].end(), normalVector.begin(), 0) - 1;
+        distance = LABELS[i] * (DATA[i] * normalVector) - 1;
 
         // If distance is less than 0, then datapoint is a support vector and the distance matters
         // If distance greater than 0, outside of margin so not a support vector
@@ -49,12 +49,12 @@ std::vector<double> LSVM::getDistancesFromCurrentDB() {
     return distances;
 }
 
-std::pair<int, std::vector<double>> LSVM::getCostGradient() {
+std::pair<double, std::vector<double>> LSVM::getCostGradient() {
     // The distance from each point to the current decision boundary, or 0 if not a support vector
     std::vector<double> distances = getDistancesFromCurrentDB();
 
     // Current cost of the support vectors
-    double currentCost = 0.5 * std::inner_product(normalVector.begin(), normalVector.end(), normalVector.begin(), 0) - currentCost * std::reduce(distances.begin(), distances.end());
+    double currentCost = 0.5 * (normalVector * normalVector) - INDIV_INFLUENCE * std::reduce(distances.begin(), distances.end());
 
     // Gradient
     std::vector<double> dNormalVector(DIMENSION, 0);
@@ -69,12 +69,12 @@ std::pair<int, std::vector<double>> LSVM::getCostGradient() {
 }
 
 void LSVM::train(const bool print, const int printEveryX) {
-    std::pair<int, std::vector<double>> costGradient;
-    for(int epoc = 0; epoc < NUM_EPOCS; ++epoc) {
+    std::pair<double, std::vector<double>> costGradient;
+    for(int epoc = 1; epoc <= NUM_EPOCS; ++epoc) {
         costGradient = getCostGradient();
         normalVector -= LEARNING_RATE * costGradient.second;
         if (print && epoc % printEveryX == 0)
-            std::cout << "i : " << costGradient.first << std::endl;
+            std::cout << epoc << ": " << costGradient.first << std::endl;
     }
 }
 
@@ -86,8 +86,10 @@ std::vector<int> LSVM::predictLabels(std::vector<std::vector<double>> dataSet) {
         if (dataSet[i].size() != DIMENSION)
             throw CustomException("Cannot predict: dimension of each point" + std::to_string(i) + "does not match dimension of training data");
 
+    // The cross product of the dataset and the decision boundary
     std::vector<double> crossProduct = dataSet * normalVector;
 
+    // The predicted labels
     std::vector<int> signs(dataSet.size(), 0);
     for (int i = 0; i < dataSet.size(); ++i)
         signs[i] = copysign(1, crossProduct[i]);
