@@ -71,7 +71,7 @@ std::pair<double, std::vector<double>> LSVM::getCostGradient(int& minibatchCount
         dNormalVector += normalVector - ((distances[minibatchCounter] != 0) * INDIV_INFLUENCE * LABELS[minibatchCounter]) * DATA[minibatchCounter];
     }
 
-    dNormalVector /= NUM_DATA_POINTS;
+    dNormalVector /= NUM_SAMPLES_MINIBATCH;
 
     return std::make_pair(currentCost, dNormalVector);
 }
@@ -90,9 +90,11 @@ void LSVM::train(const bool print, const int printEveryX) {
 
     for(int epoc = 2; epoc <= NUM_EPOCS; ++epoc) {
         costGradient = getCostGradient(minibatchCounter);
-        if (abs(costGradient.first/prevCost - 1) < COST_PERCENTAGE_THRESHOLD && ++breakCounter >= NUM_COST_BELOW_THRESHOLD)
-            break;
-        else
+        if (abs(costGradient.first/prevCost - 1) < COST_PERCENTAGE_THRESHOLD) {
+            if (++breakCounter >= NUM_COST_BELOW_THRESHOLD) {
+                break;
+            }
+        } else
             breakCounter = 0;
 
         prevCost = costGradient.first;

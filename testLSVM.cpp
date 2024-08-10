@@ -6,22 +6,22 @@
 #include "dependencies/gnuplot.h"
 
 // Number of epocs
-#define NUM_EPOCS 100'000
+#define NUM_EPOCS 1'000
 
-// Threshold percentage on costs for stopping training early
-#define COST_PERCENTAGE_THRESHOLD .0001
+// Threshold percentage on costs for stopping training early - set to 0 to disable
+#define COST_PERCENTAGE_THRESHOLD 0.00001
 
 // Number of times the cost difference change needs to be below the threshold to stop training early
-#define NUM_COST_BELOW_THRESHOLD 30
+#define NUM_COST_BELOW_THRESHOLD 10
 
 // Hyperparameter
 #define INDIV_INFLUENCE 30
 
 // How many training samples to generate
-#define NUM_TRAINING_SAMPLES 1000
+#define NUM_TRAINING_SAMPLES 100'000
 
 // How many epocs to wait to print cost of current decision boundary during training
-#define PRINT_EVERY_X 1000
+#define PRINT_EVERY_X 10
 
 // How many samples to test the model on
 #define NUM_TEST_SAMPLES 1000
@@ -30,12 +30,14 @@
 #define NUM_SAMPLES_MINIBATCH 1000
 
 // Learning rate related
-// Learning rate
-#define INITIAL_LEARNING_RATE .001
+// Learning rate type
+#define LEARNING_RATE_TYPE EXPONENTIAL
+// Initial learning rate
+#define INITIAL_LEARNING_RATE 1
 // Drop amount
 #define DROP .5
 // Number of epocs before drop
-#define EPOC_DROP 10
+#define EPOC_DROP 50
 
 void printDecisionBoundary(LSVM* model) {
     std::vector<double> decisionBoundary = model->getNormalVector();
@@ -48,13 +50,13 @@ void printDecisionBoundary(LSVM* model) {
 int main() {
     std::vector<std::vector<double>> trainingData;
     std::vector<int> trainingLabels;
-    // init2dData(trainingData, trainingLabels, NUM_TRAINING_SAMPLES);
-    load2dData("data.dat", trainingData, trainingLabels);
+    init2dData(trainingData, trainingLabels, NUM_TRAINING_SAMPLES);
+    // load2dData("data.dat", trainingData, trainingLabels);
 
     // The Linear Support Vector Machine Object
     LSVM* model;
     try {
-        LearningRate learningRate = LearningRate(CONSTANT, INITIAL_LEARNING_RATE, DROP, EPOC_DROP);
+        LearningRate learningRate = LearningRate(LEARNING_RATE_TYPE, INITIAL_LEARNING_RATE, DROP, EPOC_DROP);
         model = new LSVM(trainingData, trainingLabels, NUM_EPOCS, learningRate, INDIV_INFLUENCE, COST_PERCENTAGE_THRESHOLD, NUM_COST_BELOW_THRESHOLD, NUM_SAMPLES_MINIBATCH);
     } catch (CustomException& e) {
         std::cout << "Error in creation of model - " << e.getMessage() << std::endl;
