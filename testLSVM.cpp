@@ -7,7 +7,7 @@
 #include "dependencies/gnuplot.h"
 
 // Number of epocs
-#define NUM_EPOCS 1'000
+#define NUM_EPOCS 10'000
 
 // Learning rate
 #define LEARNING_RATE .001
@@ -16,13 +16,13 @@
 #define INDIV_INFLUENCE 30
 
 // How many training samples to generate
-#define NUM_TRAINING_SAMPLES 100
+#define NUM_TRAINING_SAMPLES 1000
 
 // How many epocs to wait to print cost of current decision boundary during training
-#define PRINT_EVERY_X 100
+#define PRINT_EVERY_X 10
 
 // How many samples to test the model on
-#define NUM_TEST_SAMPLES 100
+#define NUM_TEST_SAMPLES 1000
 
 void initData(std::vector<std::vector<double>>& data, std::vector<int>& labels, const int numberSamples) {
     std::random_device rd;
@@ -75,8 +75,7 @@ int main() {
     }
 
     // Print out the vector for the decision boundary
-    std::cout << "Decision Boundary: (" << model->getNormalVector()[0] << "," << model->getNormalVector()[1] << ")" << std::endl;
-
+    std::cout << "Decision Boundary: (" << model->getNormalVector()[0] << " " << model->getNormalVector()[1] << "," << model->getNormalVector()[2] << ")" << std::endl;
 
     std::vector<std::vector<double>> testData;
     std::vector<int> testLabels;
@@ -101,7 +100,7 @@ int main() {
     std::cout << "Accuracy: " << accuracy << "%" << std::endl;
 
     // Plot the training data and the decision boundary
-    plotData(trainingData, trainingLabels);
+    plotData(trainingData, trainingLabels, model->getNormalVector());
 
     delete model;
     return 0;

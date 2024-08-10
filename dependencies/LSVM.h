@@ -44,7 +44,7 @@ private:
     std::vector<double> getDistancesFromCurrentDB();
 
     /** Calculates the cost gradients to do gradient descent
-     * @return the cost (no actual use besides printing to terminal) and the gradient
+     * @return the cost and the gradient
      */
     std::pair<double, std::vector<double>> getCostGradient();
 
