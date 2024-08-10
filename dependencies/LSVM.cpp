@@ -1,12 +1,14 @@
 #include "LSVM.h"
 
-LSVM::LSVM(const std::vector<std::vector<double>> _data, const std::vector<int> _labels, const int _numEpocs, const double _learningRate, const double _indivInfluence)
+LSVM::LSVM(const std::vector<std::vector<double>> _data, const std::vector<int> _labels, const int _numEpocs, const double _learningRate, const double _indivInfluence, const double _cost_percentage_threshold, const double _num_cost_below_threshold)
     : DATA(_data),
     LABELS(_labels),
     NUM_EPOCS(_numEpocs),
     LEARNING_RATE(_learningRate),
     INDIV_INFLUENCE(_indivInfluence),
-    NUM_DATA_POINTS(_data.size())
+    NUM_DATA_POINTS(_data.size()),
+    COST_PERCENTAGE_THRESHOLD(_cost_percentage_threshold),
+    NUM_COST_BELOW_THRESHOLD(_num_cost_below_threshold)
  {
     validateData();
 
@@ -69,9 +71,23 @@ std::pair<double, std::vector<double>> LSVM::getCostGradient() {
 }
 
 void LSVM::train(const bool print, const int printEveryX) {
-    std::pair<double, std::vector<double>> costGradient;
-    for(int epoc = 1; epoc <= NUM_EPOCS; ++epoc) {
+    std::pair<double, std::vector<double>> costGradient = getCostGradient();
+    normalVector -= LEARNING_RATE * costGradient.second;
+    if (print && printEveryX == 1)
+        std::cout << 1 << ": " << costGradient.first << std::endl;
+
+    double prevCost = costGradient.first;
+    int breakCounter = 0;
+
+    for(int epoc = 2; epoc <= NUM_EPOCS; ++epoc) {
         costGradient = getCostGradient();
+        if (abs(costGradient.first/prevCost - 1) < COST_PERCENTAGE_THRESHOLD && ++breakCounter < NUM_COST_BELOW_THRESHOLD)
+            break;
+        else
+            breakCounter = 0;
+
+        prevCost = costGradient.first;
+
         normalVector -= LEARNING_RATE * costGradient.second;
         if (print && epoc % printEveryX == 0)
             std::cout << epoc << ": " << costGradient.first << std::endl;

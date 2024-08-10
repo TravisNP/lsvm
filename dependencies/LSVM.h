@@ -5,6 +5,7 @@
 #include <iostream>
 #include <numeric>
 #include <math.h>
+#include <limits.h>
 
 #include "overload.h"
 
@@ -33,6 +34,12 @@ private:
     // Number of data points to generate
     int NUM_DATA_POINTS;
 
+    // Threshold for the cost difference change to end training early
+    double COST_PERCENTAGE_THRESHOLD;
+
+    // Number of times the cost difference change needs to be below the threshold to stop training early
+    double NUM_COST_BELOW_THRESHOLD;
+
     /** Validates the data
      * @throws an error if the dataset is not valid
      */
@@ -49,7 +56,7 @@ private:
     std::pair<double, std::vector<double>> getCostGradient();
 
 public:
-    LSVM(const std::vector<std::vector<double>> _data, const std::vector<int> _labels, const int _numEpocs, const double _learningRate, const double _indivInfluence);
+    LSVM(const std::vector<std::vector<double>> _data, const std::vector<int> _labels, const int _numEpocs, const double _learningRate, const double _indivInfluence, const double _cost_percentage_threshold, const double _num_cost_below_threshold);
 
     /** Fits the model to the data with gradient descent
      * @param printEveryX prints the cost every X iterations

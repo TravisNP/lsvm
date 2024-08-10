@@ -9,6 +9,12 @@
 // Number of epocs
 #define NUM_EPOCS 10'000
 
+// Threshold percentage on costs for stopping training early
+#define COST_PERCENTAGE_THRESHOLD .0000001
+
+// Number of times the cost difference change needs to be below the threshold to stop training early
+#define NUM_COST_BELOW_THRESHOLD 30
+
 // Learning rate
 #define LEARNING_RATE .001
 
@@ -19,7 +25,7 @@
 #define NUM_TRAINING_SAMPLES 1000
 
 // How many epocs to wait to print cost of current decision boundary during training
-#define PRINT_EVERY_X 10
+#define PRINT_EVERY_X 100
 
 // How many samples to test the model on
 #define NUM_TEST_SAMPLES 1000
@@ -60,7 +66,7 @@ int main() {
     // The Linear Support Vector Machine Object
     LSVM* model;
     try {
-        model = new LSVM(trainingData, trainingLabels, NUM_EPOCS, LEARNING_RATE, INDIV_INFLUENCE);
+        model = new LSVM(trainingData, trainingLabels, NUM_EPOCS, LEARNING_RATE, INDIV_INFLUENCE, COST_PERCENTAGE_THRESHOLD, NUM_COST_BELOW_THRESHOLD);
     } catch (CustomException& e) {
         std::cout << "Error in creation of model - " << e.getMessage() << std::endl;
         delete model;
