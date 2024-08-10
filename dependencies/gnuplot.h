@@ -4,11 +4,11 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
+#include <sstream>
 
-/** Plots 2D data and colors each point according to their label
- * @param data the data (must have a column of 1s on the left)
- * @param labels the labels (must be -1 and 1)
+/** Plots the decision boundary and the 2D data and colors each point according to their label
+ * @param file_name the file to read the data from
  */
-void plotData(const std::vector<std::vector<double>>& data, const std::vector<int>& labels, const std::vector<double>& decisionBoundary);
+void plot2dData(const std::string file_name);
 
 #endif

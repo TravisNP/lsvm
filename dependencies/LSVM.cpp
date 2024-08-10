@@ -1,14 +1,15 @@
 #include "LSVM.h"
 
-LSVM::LSVM(const std::vector<std::vector<double>> _data, const std::vector<int> _labels, const int _numEpocs, const double _learningRate, const double _indivInfluence, const double _cost_percentage_threshold, const double _num_cost_below_threshold)
+LSVM::LSVM(const std::vector<std::vector<double>> _data, const std::vector<int> _labels, const int _numEpocs, LearningRate _learningRate, const double _indivInfluence, const double _cost_percentage_threshold, const double _num_cost_below_threshold, const double _num_samples_minibatch)
     : DATA(_data),
     LABELS(_labels),
     NUM_EPOCS(_numEpocs),
-    LEARNING_RATE(_learningRate),
+    learningRate(_learningRate),
     INDIV_INFLUENCE(_indivInfluence),
     NUM_DATA_POINTS(_data.size()),
     COST_PERCENTAGE_THRESHOLD(_cost_percentage_threshold),
-    NUM_COST_BELOW_THRESHOLD(_num_cost_below_threshold)
+    NUM_COST_BELOW_THRESHOLD(_num_cost_below_threshold),
+    NUM_SAMPLES_MINIBATCH(_num_samples_minibatch)
  {
     validateData();
 
@@ -30,6 +31,9 @@ void LSVM::validateData() {
     for (int i = 1; i < DATA.size(); ++i)
         if (dimension != DATA[i].size())
             throw CustomException("Data does not all have the same dimension");
+
+    if (NUM_SAMPLES_MINIBATCH > NUM_DATA_POINTS)
+        throw CustomException("Number of samples in minibatch gradient descent cannot be greater than total number of data points");
 }
 
 std::vector<double> LSVM::getDistancesFromCurrentDB() {
@@ -51,7 +55,7 @@ std::vector<double> LSVM::getDistancesFromCurrentDB() {
     return distances;
 }
 
-std::pair<double, std::vector<double>> LSVM::getCostGradient() {
+std::pair<double, std::vector<double>> LSVM::getCostGradient(int& minibatchCounter) {
     // The distance from each point to the current decision boundary, or 0 if not a support vector
     std::vector<double> distances = getDistancesFromCurrentDB();
 
@@ -61,8 +65,10 @@ std::pair<double, std::vector<double>> LSVM::getCostGradient() {
     // Gradient
     std::vector<double> dNormalVector(DIMENSION, 0);
 
-    for (int i = 0; i < NUM_DATA_POINTS; ++i) {
-        dNormalVector += normalVector - ((distances[i] != 0) * INDIV_INFLUENCE * LABELS[i]) * DATA[i];
+    for (int i = 0; i < NUM_SAMPLES_MINIBATCH; ++i) {
+        if (++minibatchCounter >= NUM_DATA_POINTS)
+            minibatchCounter = 0;
+        dNormalVector += normalVector - ((distances[minibatchCounter] != 0) * INDIV_INFLUENCE * LABELS[minibatchCounter]) * DATA[minibatchCounter];
     }
 
     dNormalVector /= NUM_DATA_POINTS;
@@ -71,8 +77,11 @@ std::pair<double, std::vector<double>> LSVM::getCostGradient() {
 }
 
 void LSVM::train(const bool print, const int printEveryX) {
-    std::pair<double, std::vector<double>> costGradient = getCostGradient();
-    normalVector -= LEARNING_RATE * costGradient.second;
+    // keeps track of which samples to indclude in minibatch gradient descent
+    int minibatchCounter = 0;
+
+    std::pair<double, std::vector<double>> costGradient = getCostGradient(minibatchCounter);
+    normalVector -= learningRate.getLearningRate(0) * costGradient.second;
     if (print && printEveryX == 1)
         std::cout << 1 << ": " << costGradient.first << std::endl;
 
@@ -80,15 +89,15 @@ void LSVM::train(const bool print, const int printEveryX) {
     int breakCounter = 0;
 
     for(int epoc = 2; epoc <= NUM_EPOCS; ++epoc) {
-        costGradient = getCostGradient();
-        if (abs(costGradient.first/prevCost - 1) < COST_PERCENTAGE_THRESHOLD && ++breakCounter < NUM_COST_BELOW_THRESHOLD)
+        costGradient = getCostGradient(minibatchCounter);
+        if (abs(costGradient.first/prevCost - 1) < COST_PERCENTAGE_THRESHOLD && ++breakCounter >= NUM_COST_BELOW_THRESHOLD)
             break;
         else
             breakCounter = 0;
 
         prevCost = costGradient.first;
 
-        normalVector -= LEARNING_RATE * costGradient.second;
+        normalVector -= learningRate.getLearningRate(epoc) * costGradient.second;
         if (print && epoc % printEveryX == 0)
             std::cout << epoc << ": " << costGradient.first << std::endl;
     }
@@ -115,4 +124,8 @@ std::vector<int> LSVM::predictLabels(std::vector<std::vector<double>> dataSet) {
 
 std::vector<double> LSVM::getNormalVector() {
     return normalVector;
+}
+
+int LSVM::getDimension() {
+    return DIMENSION;
 }

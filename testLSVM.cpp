@@ -1,22 +1,18 @@
 #include <iostream>
-#include <random>
 #include <algorithm>
-#include <chrono>
 
 #include "dependencies/LSVM.h"
+#include "dependencies/learning_rate.h"
 #include "dependencies/gnuplot.h"
 
 // Number of epocs
-#define NUM_EPOCS 10'000
+#define NUM_EPOCS 100'000
 
 // Threshold percentage on costs for stopping training early
-#define COST_PERCENTAGE_THRESHOLD .0000001
+#define COST_PERCENTAGE_THRESHOLD .0001
 
 // Number of times the cost difference change needs to be below the threshold to stop training early
 #define NUM_COST_BELOW_THRESHOLD 30
-
-// Learning rate
-#define LEARNING_RATE .001
 
 // Hyperparameter
 #define INDIV_INFLUENCE 30
@@ -25,48 +21,41 @@
 #define NUM_TRAINING_SAMPLES 1000
 
 // How many epocs to wait to print cost of current decision boundary during training
-#define PRINT_EVERY_X 100
+#define PRINT_EVERY_X 1000
 
 // How many samples to test the model on
 #define NUM_TEST_SAMPLES 1000
 
-void initData(std::vector<std::vector<double>>& data, std::vector<int>& labels, const int numberSamples) {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::normal_distribution<double> x1(7, 1);
-    std::normal_distribution<double> y1(7, 1);
-    std::normal_distribution<double> xN1(1, 1);
-    std::normal_distribution<double> yN1(1, 1);
+// The amount of samples in each minibatch gradient descent
+#define NUM_SAMPLES_MINIBATCH 1000
 
-    std::vector<std::pair<std::vector<double>, int>> dataLabel;
+// Learning rate related
+// Learning rate
+#define INITIAL_LEARNING_RATE .001
+// Drop amount
+#define DROP .5
+// Number of epocs before drop
+#define EPOC_DROP 10
 
-    std::vector<double> generatedPoint;
-    for (int i = 0; i < numberSamples/2; ++i) {
-        generatedPoint = {1, x1(gen), y1(gen)};
-        dataLabel.emplace_back(generatedPoint, 1);
-    }
-
-    for (int i = 0; i < numberSamples/2; ++i) {
-        generatedPoint = {1, xN1(gen), yN1(gen)};
-        dataLabel.emplace_back(generatedPoint, -1);
-    }
-
-    shuffle(dataLabel.begin(), dataLabel.end(), std::default_random_engine(std::chrono::system_clock::now().time_since_epoch().count()));
-    for (int i = 0; i < numberSamples; ++i) {
-        data.push_back(dataLabel[i].first);
-        labels.push_back(dataLabel[i].second);
-    }
+void printDecisionBoundary(LSVM* model) {
+    std::vector<double> decisionBoundary = model->getNormalVector();
+    std::cout << "Decision Boundary: (";
+    for (int i = 0; i < model->getDimension() - 1; ++i)
+        std::cout << decisionBoundary[i] << ",";
+    std::cout << decisionBoundary.back() << ")" << std::endl;
 }
 
 int main() {
     std::vector<std::vector<double>> trainingData;
     std::vector<int> trainingLabels;
-    initData(trainingData, trainingLabels, NUM_TRAINING_SAMPLES);
+    // init2dData(trainingData, trainingLabels, NUM_TRAINING_SAMPLES);
+    load2dData("data.dat", trainingData, trainingLabels);
 
     // The Linear Support Vector Machine Object
     LSVM* model;
     try {
-        model = new LSVM(trainingData, trainingLabels, NUM_EPOCS, LEARNING_RATE, INDIV_INFLUENCE, COST_PERCENTAGE_THRESHOLD, NUM_COST_BELOW_THRESHOLD);
+        LearningRate learningRate = LearningRate(CONSTANT, INITIAL_LEARNING_RATE, DROP, EPOC_DROP);
+        model = new LSVM(trainingData, trainingLabels, NUM_EPOCS, learningRate, INDIV_INFLUENCE, COST_PERCENTAGE_THRESHOLD, NUM_COST_BELOW_THRESHOLD, NUM_SAMPLES_MINIBATCH);
     } catch (CustomException& e) {
         std::cout << "Error in creation of model - " << e.getMessage() << std::endl;
         delete model;
@@ -81,16 +70,16 @@ int main() {
     }
 
     // Print out the vector for the decision boundary
-    std::cout << "Decision Boundary: (" << model->getNormalVector()[0] << " " << model->getNormalVector()[1] << "," << model->getNormalVector()[2] << ")" << std::endl;
+    printDecisionBoundary(model);
 
+    // Create the test data and labels
     std::vector<std::vector<double>> testData;
     std::vector<int> testLabels;
-    initData(testData, testLabels, NUM_TEST_SAMPLES);
-
-    // The predicted labels by the model
-    std::vector<int> predictedLabels;
+    init2dData(testData, testLabels, NUM_TEST_SAMPLES);
 
     // Predict the label(s)
+    // The predicted labels by the model
+    std::vector<int> predictedLabels;
     try {
         predictedLabels = model->predictLabels(testData);
     } catch (CustomException& e) {
@@ -105,8 +94,9 @@ int main() {
     accuracy = accuracy * 100 / NUM_TEST_SAMPLES;
     std::cout << "Accuracy: " << accuracy << "%" << std::endl;
 
-    // Plot the training data and the decision boundary
-    plotData(trainingData, trainingLabels, model->getNormalVector());
+    // Save and plot the data
+    saveData(trainingData, trainingLabels, model->getNormalVector(), "data.dat");
+    plot2dData("data.dat");
 
     delete model;
     return 0;

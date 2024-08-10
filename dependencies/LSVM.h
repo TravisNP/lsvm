@@ -8,6 +8,8 @@
 #include <limits.h>
 
 #include "overload.h"
+#include "learning_rate.h"
+#include "data.h"
 
 class LSVM {
 private:
@@ -21,7 +23,7 @@ private:
     int NUM_EPOCS;
 
     // Hyperparameter
-    double LEARNING_RATE;
+    LearningRate learningRate;
 
     // Hyperparameter
     double INDIV_INFLUENCE;
@@ -40,6 +42,9 @@ private:
     // Number of times the cost difference change needs to be below the threshold to stop training early
     double NUM_COST_BELOW_THRESHOLD;
 
+    // The amount of samples in each minibatch gradient descent
+    double NUM_SAMPLES_MINIBATCH;
+
     /** Validates the data
      * @throws an error if the dataset is not valid
      */
@@ -51,12 +56,13 @@ private:
     std::vector<double> getDistancesFromCurrentDB();
 
     /** Calculates the cost gradients to do gradient descent
+     * @param minibatchCounter keeps track of which samples to indclude in minibatch gradient descent
      * @return the cost and the gradient
      */
-    std::pair<double, std::vector<double>> getCostGradient();
+    std::pair<double, std::vector<double>> getCostGradient(int& minibatchCounter);
 
 public:
-    LSVM(const std::vector<std::vector<double>> _data, const std::vector<int> _labels, const int _numEpocs, const double _learningRate, const double _indivInfluence, const double _cost_percentage_threshold, const double _num_cost_below_threshold);
+    LSVM(const std::vector<std::vector<double>> _data, const std::vector<int> _labels, const int _numEpocs, LearningRate learningRate, const double _indivInfluence, const double _cost_percentage_threshold, const double _num_cost_below_threshold, const double _num_samples_minibatch);
 
     /** Fits the model to the data with gradient descent
      * @param printEveryX prints the cost every X iterations
@@ -73,6 +79,11 @@ public:
      * @return the normal vector
      */
     std::vector<double> getNormalVector();
+
+    /** Accessor for the dimension
+     * @return the dimension
+     */
+    int getDimension();
 };
 
 #endif
