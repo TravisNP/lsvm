@@ -23,11 +23,14 @@ private:
     // Amount of epocs before every drop
     int EPOC_DROP;
 
+    // Dimension of the data
+    int DIMENSION;
+
     // Vector mapping learning rate type to calculating function
     std::vector<std::function<double(const int)>> learningTypeToFunc;
 
 public:
-    LearningRate(const LearningRateType _learningRateType, const double _initLearningRate, const double _drop, const int _epocdrop);
+    LearningRate(const LearningRateType _learningRateType, const double _initLearningRate, const double _drop, const int _epocdrop, const int _dimension);
 
     /**
      * Chooses the correct learning rate to return
