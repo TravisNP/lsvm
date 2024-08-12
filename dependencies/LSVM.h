@@ -15,10 +15,23 @@
 class LSVM {
 private:
     // The data to train the model on
-    std::vector<std::vector<double>> DATA;
+    std::vector<std::vector<double>> TRAINING_DATA;
 
     // The labels to train the model on
-    std::vector<int> LABELS;
+    std::vector<int> TRAINING_LABELS;
+
+    // The data to validate the model on
+    std::vector<std::vector<double>> VALIDATION_DATA;
+
+    // The labels to validate the model on
+    std::vector<int> VALIDATION_LABELS;
+
+    /** How often to check validation samples for early stopping
+     * Note if the validation loss increases, the next one is checked regardless of this variable*/
+    int CHECK_VALIDATION_SAMPLES_EVERY_X;
+
+    // How many times the validation loss can increase before early stopping
+    int NUM_VALIDATION_LOSS_INC_BEF_STOP;
 
     // Number of epocs used during training
     int NUM_EPOCS;
@@ -69,7 +82,7 @@ private:
     void trainWithParameterDependentLearningRate(const bool print, const int printEveryX);
 
 public:
-    LSVM(const std::vector<std::vector<double>> _data, const std::vector<int> _labels, const int _numEpocs, LearningRate learningRate, const double _indivInfluence, const double _num_samples_minibatch);
+    LSVM(const std::vector<std::vector<double>> _trainingData, const std::vector<int> _trainingLabels, const std::vector<std::vector<double>> _validationData, const std::vector<int> _validationLabels, const int _checkValidationSamplesEveryX, const int _numValidationLossIncBefStop, const int _numEpocs, LearningRate learningRate, const double _indivInfluence, const double _num_samples_minibatch);
 
     /** Decides which training method to call based off the learning rate type
      * @param print true to print the cost every printEveryX iterations, false for no print
@@ -81,7 +94,14 @@ public:
      * @param dataSet the dataset to predict the labels of
      * @return the predicted labels
      */
-    std::vector<int> predictLabels(const std::vector<std::vector<double>> dataSet);
+    std::vector<int> predictLabels(const std::vector<std::vector<double>>& dataSet);
+
+    /** Gets the misclassification error of the predicted labels
+     * @param trueLabels the actualy labels for the data
+     * @param predictedLabels the predicted labels by the model for the data
+     * @return the misclassification error
+     */
+    double misclassError(const std::vector<int>& trueLabels, const std::vector<int>& predictedLabels);
 
     /** Accessor for the normalVector variable
      * @return the normal vector
