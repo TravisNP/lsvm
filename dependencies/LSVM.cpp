@@ -1,14 +1,12 @@
 #include "LSVM.h"
 
-LSVM::LSVM(const std::vector<std::vector<double>> _data, const std::vector<int> _labels, const int _numEpocs, LearningRate _learningRate, const double _indivInfluence, const double _cost_percentage_threshold, const double _num_cost_below_threshold, const double _num_samples_minibatch)
+LSVM::LSVM(const std::vector<std::vector<double>> _data, const std::vector<int> _labels, const int _numEpocs, LearningRate _learningRate, const double _indivInfluence, const double _num_samples_minibatch)
     : DATA(_data),
     LABELS(_labels),
     NUM_EPOCS(_numEpocs),
     learningRate(_learningRate),
     INDIV_INFLUENCE(_indivInfluence),
     NUM_DATA_POINTS(_data.size()),
-    COST_PERCENTAGE_THRESHOLD(_cost_percentage_threshold),
-    NUM_COST_BELOW_THRESHOLD(_num_cost_below_threshold),
     NUM_SAMPLES_MINIBATCH(_num_samples_minibatch)
  {
     validateData();
@@ -76,32 +74,92 @@ std::pair<double, std::vector<double>> LSVM::getCostGradient(int& minibatchCount
     return std::make_pair(currentCost, dNormalVector);
 }
 
-void LSVM::train(const bool print, const int printEveryX) {
+void LSVM::trainWithNonParameterDependentLearningRate(const bool print, const int printEveryX) {
     // keeps track of which samples to indclude in minibatch gradient descent
     int minibatchCounter = 0;
 
-    std::pair<double, std::vector<double>> costGradient = getCostGradient(minibatchCounter);
-    normalVector -= learningRate.getLearningRate(0) * costGradient.second;
-    if (print && printEveryX == 1)
-        std::cout << 1 << ": " << costGradient.first << std::endl;
+    // The current cost and the gradient
+    std::pair<double, std::vector<double>> costGradient;
 
-    double prevCost = costGradient.first;
+    // The cost for the previous iteration
+    double prevCost = 1;
+
+    // A counter to keep track of when to stop trianing early
     int breakCounter = 0;
 
-    for(int epoc = 2; epoc <= NUM_EPOCS; ++epoc) {
+    for(int epoc = 1; epoc <= NUM_EPOCS; ++epoc) {
         costGradient = getCostGradient(minibatchCounter);
-        if (abs(costGradient.first/prevCost - 1) < COST_PERCENTAGE_THRESHOLD) {
-            if (++breakCounter >= NUM_COST_BELOW_THRESHOLD) {
-                break;
-            }
-        } else
-            breakCounter = 0;
-
-        prevCost = costGradient.first;
 
         normalVector -= learningRate.getLearningRate(epoc) * costGradient.second;
+
+        prevCost = costGradient.first;
         if (print && epoc % printEveryX == 0)
             std::cout << epoc << ": " << costGradient.first << std::endl;
+    }
+}
+
+void LSVM::trainWithParameterDependentLearningRate(const bool print, const int printEveryX) {
+    // keeps track of which samples to indclude in minibatch gradient descent
+    int minibatchCounter = 0;
+
+    // The current cost and the gradient
+    std::pair<double, std::vector<double>> costGradient;
+
+    // The cost for the previous iteration
+    double prevCost = 1;
+
+    // A counter to keep track of when to stop trianing early
+    int breakCounter = 0;
+
+    // First moment of the normal vector
+    std::vector<double> firstMoment(DIMENSION, 0);
+
+    // Second moment of the normal vector
+    std::vector<double> secondMoment(DIMENSION, 0);
+
+    // Unbiased first moment
+    double firstMomentParamUnbiased;
+
+    // Unbiased second moment
+    double secondMomentParamUnbiased;
+
+    // Beta1 to the epoc power
+    double beta1EpocPower = learningRate.getBeta1();
+
+    // Beta1 to the epoc power
+    double beta2EpocPower = learningRate.getBeta2();
+
+    for(int epoc = 1; epoc <= NUM_EPOCS; ++epoc) {
+        costGradient = getCostGradient(minibatchCounter);
+
+        // For each parameter
+        for (int param = 0; param < DIMENSION; ++param) {
+            // Update the first and second moments
+            firstMoment[param] = learningRate.getBeta1() * firstMoment[param] + (1 - learningRate.getBeta1()) * costGradient.second[param];
+            secondMoment[param] = learningRate.getBeta2() * secondMoment[param] + (1 - learningRate.getBeta2()) * pow(costGradient.second[param], 2);
+
+            // Get the unbiased versions
+            firstMomentParamUnbiased = firstMoment[param] / (1 - beta1EpocPower);
+            secondMomentParamUnbiased = secondMoment[param] / (1 - beta2EpocPower);
+
+            // Update the beta1 and beta2 powers
+            beta1EpocPower *= learningRate.getBeta1();
+            beta2EpocPower *= learningRate.getBeta2();
+
+            normalVector[param] -= learningRate.getAlpha() * firstMomentParamUnbiased / (sqrt(secondMomentParamUnbiased) + learningRate.getEpsilon());
+        }
+
+        prevCost = costGradient.first;
+        if (print && epoc % printEveryX == 0)
+            std::cout << epoc << ": " << costGradient.first << std::endl;
+    }
+}
+
+void LSVM::train(const bool print, const int printEveryX) {
+    if (learningRate.getLearningRateType() == ADAM) {
+        trainWithParameterDependentLearningRate(print, printEveryX);
+    } else {
+        trainWithNonParameterDependentLearningRate(print, printEveryX);
     }
 }
 

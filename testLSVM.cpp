@@ -6,19 +6,13 @@
 #include "dependencies/gnuplot.h"
 
 // Number of epocs
-#define NUM_EPOCS 10'000
-
-// Threshold percentage on costs for stopping training early - set to 0 to disable
-#define COST_PERCENTAGE_THRESHOLD 0.00001
-
-// Number of times the cost difference change needs to be below the threshold to stop training early
-#define NUM_COST_BELOW_THRESHOLD 10
+#define NUM_EPOCS 200
 
 // Hyperparameter
 #define INDIV_INFLUENCE 30
 
 // How many training samples to generate
-#define NUM_TRAINING_SAMPLES 100'000
+#define NUM_TRAINING_SAMPLES 10'000
 
 // How many epocs to wait to print cost of current decision boundary during training
 #define PRINT_EVERY_X 10
@@ -27,17 +21,28 @@
 #define NUM_TEST_SAMPLES 1000
 
 // The amount of samples in each minibatch gradient descent
-#define NUM_SAMPLES_MINIBATCH 1000
+#define NUM_SAMPLES_MINIBATCH 64
 
-// Learning rate related
 // Learning rate type
-#define LEARNING_RATE_TYPE EXPONENTIAL
-// Constant/Exponential: Initial learning rate - Adam: alpha
-#define LRP1 1
-// Exponential: Drop - Adam: beta1
-#define LRP2 .5
-// Eponential: Epocs before drop - Adam: beta2
-#define LRP3 50
+#define LEARNING_RATE_TYPE ADAM
+
+// // Decent Exponential Parameter Values
+// // Initial learning rate
+// #define LRP1 1
+// // Drop
+// #define LRP2 .5
+// // Epocs before drop
+// #define LRP3 50
+
+// Decent Adam parameter values
+// Adam: alpha
+#define LRP1 .02
+// Adam: beta1
+#define LRP2 .8
+// Adam: beta2
+#define LRP3 .999
+// Adam: epsilon
+#define LRP4 pow(10, -8)
 
 void printDecisionBoundary(LSVM* model) {
     std::vector<double> decisionBoundary = model->getNormalVector();
@@ -56,8 +61,8 @@ int main() {
     // The Linear Support Vector Machine Object
     LSVM* model;
     try {
-        LearningRate learningRate = LearningRate(LEARNING_RATE_TYPE, LRP1, LRP2, LRP3, trainingData[0].size());
-        model = new LSVM(trainingData, trainingLabels, NUM_EPOCS, learningRate, INDIV_INFLUENCE, COST_PERCENTAGE_THRESHOLD, NUM_COST_BELOW_THRESHOLD, NUM_SAMPLES_MINIBATCH);
+        LearningRate learningRate = LearningRate(LEARNING_RATE_TYPE, LRP1, LRP2, LRP3, LRP4);
+        model = new LSVM(trainingData, trainingLabels, NUM_EPOCS, learningRate, INDIV_INFLUENCE, NUM_SAMPLES_MINIBATCH);
     } catch (CustomException& e) {
         std::cout << "Error in creation of model - " << e.getMessage() << std::endl;
         delete model;

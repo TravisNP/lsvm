@@ -37,12 +37,6 @@ private:
     // Number of data points to generate
     int NUM_DATA_POINTS;
 
-    // Threshold for the cost difference change to end training early
-    double COST_PERCENTAGE_THRESHOLD;
-
-    // Number of times the cost difference change needs to be below the threshold to stop training early
-    double NUM_COST_BELOW_THRESHOLD;
-
     // The amount of samples in each minibatch gradient descent
     double NUM_SAMPLES_MINIBATCH;
 
@@ -57,15 +51,28 @@ private:
     std::vector<double> getDistancesFromCurrentDB();
 
     /** Calculates the cost gradients to do gradient descent
-     * @param minibatchCounter keeps track of which samples to indclude in minibatch gradient descent
+     * @param minibatchCounter keeps track of which samples to include in minibatch gradient descent
      * @return the cost and the gradient
      */
     std::pair<double, std::vector<double>> getCostGradient(int& minibatchCounter);
 
-public:
-    LSVM(const std::vector<std::vector<double>> _data, const std::vector<int> _labels, const int _numEpocs, LearningRate learningRate, const double _indivInfluence, const double _cost_percentage_threshold, const double _num_cost_below_threshold, const double _num_samples_minibatch);
+    /** Fits the model to the data with gradient descent with a learning rate that is not parameter dependent (CONSTANT, EXPONENTIAL)
+     * @param print true to print the cost every printEveryX iterations, false for no print
+     * @param printEveryX prints the cost every X iterations
+     */
+    void trainWithNonParameterDependentLearningRate(const bool print, const int printEveryX);
 
-    /** Fits the model to the data with gradient descent
+    /** Fits the model to the data with gradient descent with a learning rate that adapts to the individual parameters (ADAM)
+     * @param print true to print the cost every printEveryX iterations, false for no print
+     * @param printEveryX prints the cost every X iterations
+     */
+    void trainWithParameterDependentLearningRate(const bool print, const int printEveryX);
+
+public:
+    LSVM(const std::vector<std::vector<double>> _data, const std::vector<int> _labels, const int _numEpocs, LearningRate learningRate, const double _indivInfluence, const double _num_samples_minibatch);
+
+    /** Decides which training method to call based off the learning rate type
+     * @param print true to print the cost every printEveryX iterations, false for no print
      * @param printEveryX prints the cost every X iterations
      */
     void train(const bool print = false, const int printEveryX = 1000);

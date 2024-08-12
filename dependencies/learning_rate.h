@@ -7,30 +7,31 @@
 
 enum LearningRateType {
     CONSTANT = 0,
-    EXPONENTIAL = 1
+    EXPONENTIAL = 1,
+    ADAM = 2
 };
 
 class LearningRate {
 private:
     LearningRateType learningRateType;
 
-    // Initial learning rate
-    double INIT_LEARNING_RATE;
+    // Constant/Exponential: Initial learning rate - Adam: alpha
+    double LRP1;
 
-    // Multiplier to drop by
-    double DROP;
+    // Exponential: Drop - Adam: beta1
+    double LRP2;
 
-    // Amount of epocs before every drop
-    int EPOC_DROP;
+    // Eponential: Epocs before drop - Adam: beta2
+    double LRP3;
 
-    // Dimension of the data
-    int DIMENSION;
+    // Adam: epsilon
+    double LRP4;
 
     // Vector mapping learning rate type to calculating function
     std::vector<std::function<double(const int)>> learningTypeToFunc;
 
 public:
-    LearningRate(const LearningRateType _learningRateType, const double _initLearningRate, const double _drop, const int _epocdrop, const int _dimension);
+    LearningRate(const LearningRateType _learningRateType, const double _lrp1, const double _lrp2, const double _lrp3, const double _lrp4);
 
     /**
      * Chooses the correct learning rate to return
@@ -48,6 +49,31 @@ public:
      * @return the learning rate
      */
     double getConstantLearningRate(const int epoc);
+
+    /**
+     * @return the learning rate type
+     */
+    LearningRateType getLearningRateType();
+
+    /** Accessor for alpha - used in Adam
+     * @return alpha
+     */
+    double getAlpha();
+
+    /** Accessor for beta1 - used in Adam
+     * @return beta1
+     */
+    double getBeta1();
+
+    /** Accessor for beta2 - used in Adam
+     * @return beta2
+     */
+    double getBeta2();
+
+    /** Accessor for epsilon - used in Adam
+     * @return epsilon
+     */
+    double getEpsilon();
 };
 
 #endif
