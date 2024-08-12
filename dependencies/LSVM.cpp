@@ -44,7 +44,7 @@ std::vector<double> LSVM::getDistancesFromCurrentDB() {
     double distance;
     for (int i = 0; i < NUM_DATA_POINTS; ++i) {
         // Get the distance from margin
-        distance = LABELS[i] * (DATA[i] * normalVector) - 1;
+        distance = LABELS[i] * inner_product(DATA[i], normalVector) - 1;
 
         // If distance is less than 0, then datapoint is a support vector and the distance matters
         // If distance greater than 0, outside of margin so not a support vector
@@ -60,7 +60,7 @@ std::pair<double, std::vector<double>> LSVM::getCostGradient(int& minibatchCount
     std::vector<double> distances = getDistancesFromCurrentDB();
 
     // Current cost of the support vectors
-    double currentCost = 0.5 * (normalVector * normalVector) - INDIV_INFLUENCE * std::reduce(distances.begin(), distances.end());
+    double currentCost = 0.5 * inner_product(normalVector, normalVector) - INDIV_INFLUENCE * std::reduce(distances.begin(), distances.end());
 
     // Gradient
     std::vector<double> dNormalVector(DIMENSION, 0);
@@ -114,7 +114,7 @@ std::vector<int> LSVM::predictLabels(std::vector<std::vector<double>> dataSet) {
             throw CustomException("Cannot predict: dimension of each point" + std::to_string(i) + "does not match dimension of training data");
 
     // The cross product of the dataset and the decision boundary
-    std::vector<double> crossProduct = dataSet * normalVector;
+    std::vector<double> crossProduct = cross_product(dataSet, normalVector);
 
     // The predicted labels
     std::vector<int> signs(dataSet.size(), 0);

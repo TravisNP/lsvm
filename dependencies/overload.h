@@ -34,7 +34,7 @@ std::vector<double>& operator-=(std::vector<double>& lhs, const std::vector<doub
 std::vector<double>& operator/=(std::vector<double>& vec, const int divisor);
 
 /**
- * Subtracts to vectors pairwise
+ * Subtracts two vectors pairwise
  * @param lhs the vector being subtracted to
  * @param rhs the vector that is being subtracted
  * @return the pairwise subtraction
@@ -43,22 +43,13 @@ std::vector<double>& operator/=(std::vector<double>& vec, const int divisor);
 std::vector<double> operator-(const std::vector<double>& lhs, const std::vector<double>& rhs);
 
 /**
- * The cross product of two matrices
- * @param lhs the left matrix
- * @param rhs the right matrix (must be n x 1)
- * @return the cross product
- * @throws CustomException if one of the matrices has 0 dimension or if the dimensions needed do not match (m x n * n x 1)
+ * Multiplies two vectors pairwise
+ * @param lhs a vector
+ * @param rhs a vector of the same length
+ * @return the pairwise multiplication
+ * @throws CustomException if lengths are not equal
  */
-std::vector<double> operator*(const std::vector<std::vector<double>>& lhs, const std::vector<double>& rhs);
-
-/**
- * The inner product of two vectors
- * @param lhs the left matrix
- * @param rhs the right matrix
- * @return the cross product
- * @throws CustomException if one of the matrices has 0 dimension or if the dimensions needed do not match (m x n * n x 1)
- */
-double operator*(const std::vector<double>& lhs, const std::vector<double>& rhs);
+std::vector<double> operator*(const std::vector<double>& lhs, const std::vector<double>& rhs);
 
 /**
  * Multiplies a constant through a vector

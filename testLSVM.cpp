@@ -6,7 +6,7 @@
 #include "dependencies/gnuplot.h"
 
 // Number of epocs
-#define NUM_EPOCS 1'000
+#define NUM_EPOCS 10'000
 
 // Threshold percentage on costs for stopping training early - set to 0 to disable
 #define COST_PERCENTAGE_THRESHOLD 0.00001
@@ -32,12 +32,12 @@
 // Learning rate related
 // Learning rate type
 #define LEARNING_RATE_TYPE EXPONENTIAL
-// Initial learning rate
-#define INITIAL_LEARNING_RATE 1
-// Drop amount
-#define DROP .5
-// Number of epocs before drop
-#define EPOC_DROP 50
+// Constant/Exponential: Initial learning rate - Adam: alpha
+#define LRP1 1
+// Exponential: Drop - Adam: beta1
+#define LRP2 .5
+// Eponential: Epocs before drop - Adam: beta2
+#define LRP3 50
 
 void printDecisionBoundary(LSVM* model) {
     std::vector<double> decisionBoundary = model->getNormalVector();
@@ -56,7 +56,7 @@ int main() {
     // The Linear Support Vector Machine Object
     LSVM* model;
     try {
-        LearningRate learningRate = LearningRate(LEARNING_RATE_TYPE, INITIAL_LEARNING_RATE, DROP, EPOC_DROP);
+        LearningRate learningRate = LearningRate(LEARNING_RATE_TYPE, LRP1, LRP2, LRP3);
         model = new LSVM(trainingData, trainingLabels, NUM_EPOCS, learningRate, INDIV_INFLUENCE, COST_PERCENTAGE_THRESHOLD, NUM_COST_BELOW_THRESHOLD, NUM_SAMPLES_MINIBATCH);
     } catch (CustomException& e) {
         std::cout << "Error in creation of model - " << e.getMessage() << std::endl;

@@ -8,6 +8,7 @@
 #include <limits.h>
 
 #include "overload.h"
+#include "matrix_operations.h"
 #include "learning_rate.h"
 #include "data.h"
 
