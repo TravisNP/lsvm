@@ -22,6 +22,14 @@ void saveData(const std::vector<std::vector<double>>& data, const std::vector<in
 */
 void load2dData(std::string fileName, std::vector<std::vector<double>>& data, std::vector<int>& labels);
 
+/** loads in data in the format saveData saves it to
+ * @param fileName the file to load the data from
+ * @param data the data points
+ * @param labels the labels
+ * @param numDataFields the number of data fields
+*/
+void loadCustomData(std::string fileName, std::vector<std::vector<double>>& data, std::vector<int>& labels, const int numDataFields);
+
 /** Populates data and labels with the number of 2d data points specified
  * @param data the data being populated
  * @param labels the labels being populated

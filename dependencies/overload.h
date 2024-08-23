@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <numeric>
+#include <iostream>
 
 #include "custom_exceptions.h"
 
@@ -60,11 +61,10 @@ std::vector<double> operator*(const std::vector<double>& lhs, const std::vector<
 std::vector<double> operator*(const int mult, const std::vector<double>& vec);
 
 /**
- * Multiplies a constant through a vector
- * @param mult the constant
+ * Prints a vector of doubles
+ * @param os output stream
  * @param vec the vector
- * @return the vector with each element multiplied by the constant
  */
-std::vector<double> operator*(const double mult, const std::vector<double>& vec);
+std::ostream& operator<<(std::ostream& os, const std::vector<double>& vec);
 
 #endif

@@ -30,13 +30,32 @@ void load2dData(std::string fileName, std::vector<std::vector<double>>& data, st
     }
 }
 
+void loadCustomData(std::string fileName, std::vector<std::vector<double>>& data, std::vector<int>& labels, const int numDataFields) {
+    std::ifstream infile(fileName);
+    std::string line;
+
+    std::vector<double> dataPoint(numDataFields, 1);
+
+    while (std::getline(infile, line)) {
+        std::istringstream iss(line);
+        std::string num;
+        for (int i = 1; i < numDataFields; ++i) {
+            iss >> num;
+            dataPoint[i] = (std::stod(num));
+        }
+        data.push_back(dataPoint);
+        iss >> num;
+        labels.push_back(std::stoi(num));
+    }
+}
+
 void init2dData(std::vector<std::vector<double>>& data, std::vector<int>& labels, const int numberSamples) {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::normal_distribution<double> x1(8, 1);
-    std::normal_distribution<double> y1(8, 1);
-    std::normal_distribution<double> xN1(1, 1);
-    std::normal_distribution<double> yN1(1, 1);
+    std::normal_distribution<double> x1(1, 2);
+    std::normal_distribution<double> y1(1, 1);
+    std::normal_distribution<double> xN1(7, 1);
+    std::normal_distribution<double> yN1(7, 2);
 
     std::vector<std::pair<std::vector<double>, int>> dataLabel;
 

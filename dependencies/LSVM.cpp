@@ -206,7 +206,9 @@ double LSVM::misclassError(const std::vector<int>& trueLabels, const std::vector
     for (int i = 0; i < trueLabels.size(); ++i) {
         misclassError += (trueLabels[i] != predictedLabels[i]);
     }
-    misclassError = misclassError * 100 / trueLabels.size();
+    misclassError = misclassError / trueLabels.size();
+
+    return misclassError;
 }
 
 std::vector<int> LSVM::predictLabels(const std::vector<std::vector<double>>& dataSet) {

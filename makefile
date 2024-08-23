@@ -23,6 +23,14 @@ $(BUILD_DIR)/testLSVM.o: testLSVM.cpp
 	@mkdir -p $(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
+# Compiles all the object files together into one executable
+lsvmCustomData: $(OBJS) $(BUILD_DIR)/lsvmCustomData.o
+	$(CXX) $(CXXFLAGS) -o lsvmCustomData $(OBJS) $(BUILD_DIR)/lsvmCustomData.o $(SRLFLAGS)
+
+$(BUILD_DIR)/lsvmCustomData.o: lsvmCustomData.cpp
+	@mkdir -p $(BUILD_DIR)
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
 # Compiles the .o files in the build directory
 $(BUILD_DIR)/%.o: $(DEPENDENCIES_DIR)/%.cpp
 	@mkdir -p $(BUILD_DIR)
@@ -30,5 +38,5 @@ $(BUILD_DIR)/%.o: $(DEPENDENCIES_DIR)/%.cpp
 
 # Removes the build directory, all object files, and the executable
 clean:
-	rm -f testLSVM data.dat $(BUILD_DIR)/*.o
+	rm -f testLSVM lsvmCustomData *.dat $(BUILD_DIR)/*.o
 	rm -rf $(BUILD_DIR)

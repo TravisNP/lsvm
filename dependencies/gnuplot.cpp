@@ -3,8 +3,8 @@
 void plot2dData(std::string file_name) {
     std::vector<double> decisionBoundary;
 
-        // Manually read the first line
-    std::ifstream infile("data.dat");
+    // Manually read the first line
+    std::ifstream infile(file_name);
     std::string firstLine;
     if (std::getline(infile, firstLine)) {
         std::istringstream iss(firstLine);
@@ -19,7 +19,7 @@ void plot2dData(std::string file_name) {
     const double yIntercept = -1 * decisionBoundary[0] / decisionBoundary[2];
     // Command to pipe to GNUplot
     std::string cmd = "gnuplot -p -e \"unset colorbox; unset key; set palette defined (-1 'red', 1 'blue'); "
-                      "plot 'data.dat' using 1:2:3 skip 1 with points pointtype 7 pointsize 1 palette, "
+                      "plot '" + file_name + "' using 1:2:3 skip 1 with points pointtype 7 pointsize 1 palette, "
                       "x * " + std::to_string(slope) + " + " + std::to_string(yIntercept) + " with lines linetype 1 linecolor 'black'\"";
     system(cmd.c_str());
 }

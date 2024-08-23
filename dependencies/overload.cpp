@@ -66,3 +66,15 @@ std::vector<double> operator*(const double mult, const std::vector<double>& vec)
 
     return newVec;
 }
+
+std::ostream& operator<<(std::ostream& os, const std::vector<double>& vec) {
+    os << "[";
+    for (size_t i = 0; i < vec.size(); ++i) {
+        os << vec[i];
+        if (i != vec.size() - 1) {
+            os << ", ";
+        }
+    }
+    os << "]";
+    return os;
+}

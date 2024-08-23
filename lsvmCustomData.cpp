@@ -6,13 +6,7 @@
 #include "dependencies/gnuplot.h"
 
 // Number of epocs
-#define NUM_EPOCS 1'000
-
-// How many training samples to generate
-#define NUM_TRAINING_SAMPLES 8'000
-
-// How many validation samples to generate
-#define NUM_VALIDATION_SAMPLES 2'000
+#define NUM_EPOCS 250
 
 // How often to check validation samples for early stopping
 #define CHECK_VALIDATION_SAMPLES_EVERY_X 5
@@ -20,11 +14,9 @@
 // How many times the validation loss can increase before early stopping
 #define NUM_VALIDATION_LOSS_INC_BEF_STOP 5
 
-// How many samples to test the model on
-#define NUM_TEST_SAMPLES 2'000
 
 // The amount of samples in each minibatch gradient descent
-#define NUM_SAMPLES_MINIBATCH 8'000
+#define NUM_SAMPLES_MINIBATCH 50
 
 // Hyperparameter
 #define INDIV_INFLUENCE 30
@@ -64,17 +56,15 @@ void printDecisionBoundary(LSVM* model) {
 }
 
 int main() {
-    // Initialize training data and lables
+    // Load training data and lables
     std::vector<std::vector<double>> trainingData;
     std::vector<int> trainingLabels;
-    init2dData(trainingData, trainingLabels, NUM_TRAINING_SAMPLES);
-    // load2dData("trainingData.dat", trainingData, trainingLabels);
+    loadCustomData("trainingData.dat", trainingData, trainingLabels, 5);
 
-    // Initialize validation data and labels
+    // Load validation data and labels
     std::vector<std::vector<double>> validationData;
     std::vector<int> validationLabels;
-    init2dData(validationData, validationLabels, NUM_VALIDATION_SAMPLES);
-    // load2dData("validationData.dat", validationData, validationLabels);
+    loadCustomData("validationData.dat", validationData, validationLabels, 5);
 
     // The Linear Support Vector Machine Object
     LSVM* model;
@@ -94,14 +84,10 @@ int main() {
         std::cout << "Error in training of model - " << e.getMessage() << std::endl;
     }
 
-    // Print out the vector for the decision boundary
-    printDecisionBoundary(model);
-
-    // Create the test data and labels
+    // Load the test data and labels
     std::vector<std::vector<double>> testData;
     std::vector<int> testLabels;
-    init2dData(testData, testLabels, NUM_TEST_SAMPLES);
-    // load2dData("testData.dat", testData, testLabels);
+    loadCustomData("testData.dat", testData, testLabels, 5);
 
     // Predict the label(s)
     // The predicted labels by the model
@@ -117,13 +103,6 @@ int main() {
     std::cout << "Accuracy: " << 1 - misclassError << std::endl;
     std::cout << "Num Wrong: " << misclassError * testData.size() << std::endl;
     std::cout << "Decision Boundary: " << model->getNormalVector() << std::endl;
-
-    // Save and plot the data
-    saveData(trainingData, trainingLabels, model->getNormalVector(), "trainingData.dat");
-    saveData(testData, testLabels, model->getNormalVector(), "testData.dat");
-    saveData(validationData, validationLabels, model->getNormalVector(), "validationData.dat");
-    plot2dData("trainingData.dat");
-    plot2dData("testData.dat");
 
     delete model;
     return 0;
